@@ -79,3 +79,54 @@ src/
     ReadinessGauge.tsx # SVG circular progress gauge
     TrajectoryChart.tsx # Line chart of readiness trajectory
 ```
+
+## Sign-off Topics, Criteria & Defects
+
+The **Sign-off** page (`/signoff`) provides a structured approach to tracking readiness sign-offs:
+
+- **Topics**: Named sign-off areas with owner, domain, status (`not-started` | `in-review` | `signed-off` | `blocked`) and free-text rationale.
+- **Criteria**: Checklist items per topic. Each criterion is marked `pass` / `fail` / `n/a`. Clicking cycles the state.
+- **Defects**: Linked defects with severity (1–4) and status (`open` | `in-progress` | `closed`). Severity-1 defects block sign-off.
+- **Sign-off gate**: The "Sign Off" button is disabled if any criteria are `fail` or if an open Sev-1 defect is linked. A "Risk Accepted" checkbox overrides the gate.
+- The existing `qualitative.topicsSignedOffCount` manual field is **additive** — the new topic system does not replace it.
+
+All topic/criteria/defect data is stored in `AppState` and persisted to `localStorage`.
+
+## PPTX Chart Export
+
+The "Export PPTX" button captures chart images using `html-to-image` and embeds them in the slide deck:
+
+1. `exportMode` is set to `true`, disabling hover/animation states.
+2. Two animation frames are awaited to let the DOM settle.
+3. `html-to-image.toPng()` is called on each element with a `data-export-id` attribute:
+   - `trajectory-chart` (TrajectoryChart)
+   - `scope-chart` (ScopePanel)
+   - `qual-chart` (QualPanel)
+4. Captured PNG data URLs are added as images to relevant PPTX slides.
+5. If capture fails (e.g. CORS, off-screen element), the export continues with text-only content and logs a warning.
+
+**Limitations**: Charts must be visible (rendered) in the DOM at export time. Cross-origin images inside charts may cause capture failure.
+
+## Role-Based Views
+
+The header includes a **👔 Exec / 🔧 Working** toggle:
+
+- **Executive mode**: The `+ DRH` and `+ MDR` event-add buttons are hidden. Suitable for read-only executive reviews.
+- **Working mode** (default): Full edit controls are visible.
+
+The role is stored in `AppState.role` and persisted to `localStorage`.
+
+## Command Palette (Ctrl+K)
+
+Press **Ctrl+K** (or **⌘K** on macOS) to open the command palette. Available commands:
+
+- Navigate to any page (Overview, Scope, Quant, Qual, Insights, Sign-off)
+- Add DRH / MDR event
+- Export PPTX
+- Load Demo Data
+
+Use arrow keys to navigate, Enter to execute, Esc to close.
+
+## Compact Mode
+
+Click the **🗜️** button in the header to reduce padding and make the layout more dense. State is persisted to `localStorage`.

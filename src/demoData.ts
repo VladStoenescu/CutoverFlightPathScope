@@ -3,7 +3,7 @@ import type { AppState } from './models';
 export const demoData: AppState = {
   config: {
     programName: 'Project Phoenix Migration',
-    cutoverDate: '2025-09-30',
+    goLiveDate: '2025-09-30',
     readinessTarget: 100,
     goLiveWindowStart: '2025-08-01',
     goLiveWindowEnd: '2025-09-30',
@@ -147,4 +147,10 @@ export const demoData: AppState = {
       completed: false,
     },
   ],
+  topics: [],
+  criteria: [],
+  defects: [],
+  annotations: [],
+  role: 'working',
+  compactMode: false,
 };

@@ -6,6 +6,7 @@ import { TrajectoryChart } from '../components/TrajectoryChart';
 import { ScopePanel } from '../components/ScopePanel';
 import { QuantPanel } from '../components/QuantPanel';
 import { QualPanel } from '../components/QualPanel';
+import { NextBestActions } from '../components/NextBestActions';
 import { getReadinessColorToken } from '../theme';
 
 function readinessBadgeStyle(pct: number): React.CSSProperties {
@@ -14,13 +15,13 @@ function readinessBadgeStyle(pct: number): React.CSSProperties {
 }
 
 export const OverviewPage: React.FC = () => {
-  const { state, setState, sortedEvents, currentMetrics, setEditingId } = useApp();
+  const { state, setState, sortedEvents, currentMetrics, setEditingId, handleAddEvent, handleLoadDemo } = useApp();
 
-  const daysUntilCutover = useMemo(() => {
-    if (!state.config.cutoverDate) return null;
+  const daysUntilGoLive = useMemo(() => {
+    if (!state.config.goLiveDate) return null;
     const now = new Date().setHours(0, 0, 0, 0);
-    return Math.ceil((new Date(state.config.cutoverDate + 'T00:00:00').getTime() - now) / (1000 * 60 * 60 * 24));
-  }, [state.config.cutoverDate]);
+    return Math.ceil((new Date(state.config.goLiveDate + 'T00:00:00').getTime() - now) / (1000 * 60 * 60 * 24));
+  }, [state.config.goLiveDate]);
 
   const lowestScore = currentMetrics
     ? [
@@ -30,14 +31,51 @@ export const OverviewPage: React.FC = () => {
       ].reduce((min, item) => item.pct < min.pct ? item : min)
     : null;
 
+  const handleAddAnnotation = (eventId: string) => {
+    const text = prompt('Enter annotation:');
+    if (!text) return;
+    setState(s => ({
+      ...s,
+      annotations: [...(s.annotations ?? []), { eventId, text, timestamp: new Date().toISOString() }],
+    }));
+  };
+
   if (state.events.length === 0) {
     return (
-      <div className="text-center py-16 space-y-4">
+      <div className="text-center py-16 space-y-6">
         <div className="text-6xl">✈️</div>
         <h2 className="text-2xl font-bold text-n-900 dark:text-slate-300">Start Your Cutover Flightpath</h2>
         <p className="text-n-600 dark:text-slate-500 max-w-md mx-auto">
-          Add Dress Rehearsals (DRH) and Migration Dry Runs (MDR) to track your progress toward 100% cutover readiness.
+          Track Dress Rehearsals (DRH) and Migration Dry Runs (MDR) to reach 100% cutover readiness.
         </p>
+        {/* Example KPIs */}
+        <div className="flex justify-center gap-6 flex-wrap text-sm text-n-600 dark:text-slate-400 italic">
+          <span>📊 Overall: <b className="text-green-600">91%</b></span>
+          <span>🗂 Scope: <b className="text-yellow-500">85%</b></span>
+          <span>📐 Quant: <b className="text-green-600">94%</b></span>
+          <span>✅ Qual: <b className="text-green-600">90%</b></span>
+          <span className="text-n-400">(demo data preview)</span>
+        </div>
+        <div className="flex justify-center gap-3 flex-wrap">
+          <button
+            onClick={() => handleLoadDemo()}
+            className="bg-warning/20 hover:bg-warning/30 text-warning px-4 py-2 rounded-lg border border-warning/30 font-medium transition-colors"
+          >
+            🗂 Load Demo Data
+          </button>
+          <button
+            onClick={() => handleAddEvent('DRH')}
+            className="bg-p-blue hover:bg-navy text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            + Add DRH Event
+          </button>
+          <button
+            onClick={() => handleAddEvent('MDR')}
+            className="bg-teal hover:bg-teal/80 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            + Add MDR Event
+          </button>
+        </div>
       </div>
     );
   }
@@ -51,7 +89,9 @@ export const OverviewPage: React.FC = () => {
           <Timeline
             events={sortedEvents}
             onEdit={setEditingId}
-            cutoverDate={state.config.cutoverDate}
+            goLiveDate={state.config.goLiveDate}
+            annotations={state.annotations ?? []}
+            onAddAnnotation={handleAddAnnotation}
           />
         </div>
       </section>
@@ -74,17 +114,19 @@ export const OverviewPage: React.FC = () => {
             </div>
 
             {lowestScore && (
-              <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-xs">
+              <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-xs mb-2">
                 <span className="text-warning font-semibold">🎯 Focus Area: </span>
                 <span className="text-n-900 dark:text-amber-200">{lowestScore.label} ({lowestScore.pct}%) — improve this to boost overall readiness</span>
               </div>
             )}
 
-            {daysUntilCutover !== null && (
+            {currentMetrics && <NextBestActions currentMetrics={currentMetrics} />}
+
+            {daysUntilGoLive !== null && (
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <div className="bg-n-50 dark:bg-slate-800 rounded p-2 text-center border border-n-200 dark:border-slate-700">
-                  <div className="text-2xl font-bold text-n-900 dark:text-slate-200">{daysUntilCutover}</div>
-                  <div className="text-n-600 dark:text-slate-500">Days to Cutover</div>
+                  <div className="text-2xl font-bold text-n-900 dark:text-slate-200">{daysUntilGoLive}</div>
+                  <div className="text-n-600 dark:text-slate-500">Days to Go-Live</div>
                 </div>
                 <div className="bg-n-50 dark:bg-slate-800 rounded p-2 text-center border border-n-200 dark:border-slate-700">
                   <div className="text-2xl font-bold text-n-900 dark:text-slate-200">{currentMetrics ? 100 - currentMetrics.overallReadinessPct : '—'}</div>

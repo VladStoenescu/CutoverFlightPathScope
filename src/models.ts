@@ -2,10 +2,41 @@
 
 export interface ProgramConfig {
   programName: string;
-  cutoverDate: string; // ISO date string
+  goLiveDate: string; // ISO date string (formerly cutoverDate)
   readinessTarget: number;
   goLiveWindowStart?: string;
   goLiveWindowEnd?: string;
+}
+
+export interface SignoffTopic {
+  id: string;
+  name: string;
+  owner: string;
+  domain?: string;
+  linkedEventId?: string;
+  status: 'not-started' | 'in-review' | 'signed-off' | 'blocked';
+  rationale?: string;
+  signedOffAt?: string;
+}
+
+export interface TopicCriteria {
+  id: string;
+  topicId: string;
+  description: string;
+  status: 'pass' | 'fail' | 'n/a';
+  evidenceLink?: string;
+  notes?: string;
+}
+
+export interface Defect {
+  id: string;
+  title: string;
+  severity: 1 | 2 | 3 | 4;
+  status: 'open' | 'in-progress' | 'closed';
+  linkedTopicIds: string[];
+  linkedEventId?: string;
+  createdAt: string;
+  closedAt?: string;
 }
 
 export interface EventScope {
@@ -66,6 +97,12 @@ export interface CutoverEvent {
 export interface AppState {
   config: ProgramConfig;
   events: CutoverEvent[];
+  topics: SignoffTopic[];
+  criteria: TopicCriteria[];
+  defects: Defect[];
+  annotations: { eventId: string; text: string; timestamp: string }[];
+  role: 'executive' | 'working';
+  compactMode: boolean;
 }
 
 // ─── Derived Metrics ──────────────────────────────────────────────────────────
