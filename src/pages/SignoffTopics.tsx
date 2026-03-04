@@ -31,6 +31,7 @@ export const SignoffTopics: React.FC = () => {
   const topics = state.topics ?? [];
   const criteria = state.criteria ?? [];
   const defects = state.defects ?? [];
+  const eventNameMap = new Map(state.events.map(e => [e.id, e.name]));
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -86,9 +87,12 @@ export const SignoffTopics: React.FC = () => {
     if (!title) return;
     const sevStr = prompt('Severity (1-4):') ?? '3';
     const severity = Math.min(4, Math.max(1, parseInt(sevStr, 10) || 3)) as 1 | 2 | 3 | 4;
+    const topic = topics.find(t => t.id === topicId);
     handleSaveDefect({
       id: newId(), title, severity, status: 'open',
-      linkedTopicIds: [topicId], createdAt: new Date().toISOString(),
+      linkedTopicIds: [topicId],
+      linkedEventId: topic?.linkedEventId,
+      createdAt: new Date().toISOString(),
     });
   };
 
@@ -173,6 +177,7 @@ export const SignoffTopics: React.FC = () => {
                   <span>👤 {t.owner}</span>
                   {rate !== null && <span>✅ {rate}%</span>}
                   {openDef > 0 && <span className="text-red-600 dark:text-red-400">🐛 {openDef}</span>}
+                  {t.linkedEventId && <span className="text-p-blue dark:text-indigo-400">🔗 {eventNameMap.get(t.linkedEventId) ?? '?'}</span>}
                 </div>
               </button>
             );
@@ -226,6 +231,21 @@ export const SignoffTopics: React.FC = () => {
                   className="w-full bg-n-50 dark:bg-slate-800 border border-n-200 dark:border-slate-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-p-blue resize-none dark:text-slate-200"
                   placeholder="Rationale for sign-off..."
                 />
+              </div>
+
+              {/* Linked Event */}
+              <div className="mt-3">
+                <label className="text-xs text-n-600 dark:text-slate-500 block mb-1">Linked Event</label>
+                <select
+                  value={selected.linkedEventId ?? ''}
+                  onChange={e => handleSaveTopic({ ...selected, linkedEventId: e.target.value || undefined })}
+                  className="w-full bg-n-50 dark:bg-slate-800 border border-n-200 dark:border-slate-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-p-blue dark:text-slate-200"
+                >
+                  <option value="">— Not linked to an event —</option>
+                  {state.events.sort((a, b) => a.sequenceNumber - b.sequenceNumber).map(ev => (
+                    <option key={ev.id} value={ev.id}>{ev.name} {ev.date ? `(${ev.date})` : ''}</option>
+                  ))}
+                </select>
               </div>
             </div>
 

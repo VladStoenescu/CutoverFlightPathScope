@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { CutoverEvent } from '../models';
 import { computeDerivedMetrics } from '../models';
+import { useApp } from '../contexts/AppContext';
 
 interface Props {
-  event: CutoverEvent | null;
+  event: CutoverEvent;
   onSave: (event: CutoverEvent) => void;
   onClose: () => void;
   onDelete: (id: string) => void;
@@ -37,18 +38,17 @@ const NumberInput: React.FC<{
 );
 
 export const EventDrawer: React.FC<Props> = ({ event, onSave, onClose, onDelete }) => {
-  const [draft, setDraft] = useState<CutoverEvent | null>(null);
+  const { state } = useApp();
+  const [draft, setDraft] = useState<CutoverEvent>(() => JSON.parse(JSON.stringify(event)));
   const [tab, setTab] = useState<Tab>('goals');
   const [newGoal, setNewGoal] = useState('');
 
-  useEffect(() => {
-    if (event) {
-      setDraft(JSON.parse(JSON.stringify(event)));
-      setTab('goals');
-    }
-  }, [event]);
+  const isDirty = JSON.stringify(draft) !== JSON.stringify(event);
 
-  if (!event || !draft) return null;
+  const handleClose = () => {
+    if (isDirty && !confirm('You have unsaved changes. Close without saving?')) return;
+    onClose();
+  };
 
   const metrics = computeDerivedMetrics(draft);
 
@@ -65,6 +65,14 @@ export const EventDrawer: React.FC<Props> = ({ event, onSave, onClose, onDelete 
     setDraft({ ...draft, qualitative: { ...draft.qualitative, [key]: val } });
   };
 
+  const syncFromTopics = () => {
+    const linkedTopics = state.topics.filter(t => t.linkedEventId === draft.id);
+    const allTopics = linkedTopics.length > 0 ? linkedTopics : state.topics;
+    const total = allTopics.length;
+    const signedOff = allTopics.filter(t => t.status === 'signed-off').length;
+    setDraft({ ...draft, qualitative: { ...draft.qualitative, topicsSignedOffCount: signedOff, topicsTotalCount: total } });
+  };
+
   const tabs: { id: Tab; label: string }[] = [
     { id: 'goals', label: 'Goals' },
     { id: 'scope', label: 'Scope' },
@@ -76,7 +84,7 @@ export const EventDrawer: React.FC<Props> = ({ event, onSave, onClose, onDelete 
   return (
     <div className="fixed inset-0 z-50 flex">
       {/* Backdrop */}
-      <div className="flex-1 bg-black/60 cursor-pointer" onClick={onClose} />
+      <div className="flex-1 bg-black/60 cursor-pointer" onClick={handleClose} />
       
       {/* Drawer */}
       <div className="w-full max-w-xl bg-slate-900 border-l border-slate-700 flex flex-col h-full overflow-hidden">
@@ -84,15 +92,29 @@ export const EventDrawer: React.FC<Props> = ({ event, onSave, onClose, onDelete 
         <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-slate-100">{draft.name}</span>
+              <input
+                type="text"
+                value={draft.name}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                className="text-lg font-bold text-slate-100 bg-transparent border-b border-slate-600 focus:outline-none focus:border-indigo-400 min-w-[6rem] max-w-[14rem]"
+              />
               <span className="text-sm px-2 py-0.5 rounded-full bg-indigo-600/30 text-indigo-300">{draft.type}</span>
+              <label className="flex items-center gap-1 text-xs text-slate-400 cursor-pointer ml-2">
+                <input
+                  type="checkbox"
+                  checked={draft.completed ?? false}
+                  onChange={(e) => setDraft({ ...draft, completed: e.target.checked })}
+                  className="accent-indigo-500"
+                />
+                Completed
+              </label>
             </div>
             <div className="flex items-center gap-3 mt-0.5">
               <input
                 type="date"
                 value={draft.date}
                 onChange={(e) => setDraft({ ...draft, date: e.target.value })}
-                className="bg-transparent border-none text-sm text-slate-400 focus:outline-none"
+                className="bg-slate-700 border border-slate-600 rounded px-2 py-0.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-400"
               />
             </div>
           </div>
@@ -103,7 +125,7 @@ export const EventDrawer: React.FC<Props> = ({ event, onSave, onClose, onDelete 
               </div>
               <div className="text-xs text-slate-500">Overall</div>
             </div>
-            <button onClick={onClose} className="text-slate-400 hover:text-white p-1">✕</button>
+            <button onClick={handleClose} className="text-slate-400 hover:text-white p-1">✕</button>
           </div>
         </div>
 
@@ -240,7 +262,16 @@ export const EventDrawer: React.FC<Props> = ({ event, onSave, onClose, onDelete 
                 </div>
               </div>
               <div className="bg-slate-800 rounded-lg p-3 space-y-3">
-                <div className="text-sm font-medium text-slate-200">Topics Sign-off</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-slate-200">Topics Sign-off</div>
+                  <button
+                    onClick={syncFromTopics}
+                    className="text-xs bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 px-2 py-0.5 rounded transition-colors"
+                    title="Pull sign-off counts from the Sign-off Topics page (topics linked to this event, or all topics if none linked)"
+                  >
+                    ↺ Sync from Topics
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <NumberInput label="Signed Off" value={draft.qualitative.topicsSignedOffCount} onChange={(v) => updateQual('topicsSignedOffCount', Math.min(v, draft.qualitative.topicsTotalCount))} />
                   <NumberInput label="Total Topics" value={draft.qualitative.topicsTotalCount} onChange={(v) => updateQual('topicsTotalCount', v)} />
@@ -273,7 +304,7 @@ export const EventDrawer: React.FC<Props> = ({ event, onSave, onClose, onDelete 
           </button>
           <div className="flex gap-2">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
             >
               Cancel
