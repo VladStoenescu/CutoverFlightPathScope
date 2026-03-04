@@ -73,7 +73,7 @@ export const Layout: React.FC = () => {
                   </span>
                 )}
                 <span className="text-gold font-semibold">
-                  {eventsRemaining} events until go-live
+                  {eventsRemaining} remaining events
                 </span>
               </div>
             </div>
