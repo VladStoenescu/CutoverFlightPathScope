@@ -26,19 +26,12 @@ export const Layout: React.FC = () => {
     return Math.ceil((new Date(state.config.goLiveDate + 'T00:00:00').getTime() - now) / (1000 * 60 * 60 * 24));
   }, [state.config.goLiveDate]);
 
-  const formattedGoLiveDate = useMemo(() => {
-    if (!state.config.goLiveDate) return '';
-    return new Date(state.config.goLiveDate + 'T00:00:00').toLocaleDateString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric',
-    });
-  }, [state.config.goLiveDate]);
-
+  const { goLiveWindowStart, goLiveWindowEnd } = state.config;
   const formattedWindow = useMemo(() => {
-    const { goLiveWindowStart, goLiveWindowEnd } = state.config;
     if (!goLiveWindowStart || !goLiveWindowEnd) return null;
     const fmt = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
     return `${fmt(goLiveWindowStart)} – ${fmt(goLiveWindowEnd)}`;
-  }, [state.config.goLiveWindowStart, state.config.goLiveWindowEnd]); // specific deps are correct
+  }, [goLiveWindowStart, goLiveWindowEnd]);
 
   const [editingName, setEditingName] = useState(false);
 
@@ -100,16 +93,12 @@ export const Layout: React.FC = () => {
                 </h1>
               )}
               <div className="flex items-center gap-2 text-xs text-n-600 dark:text-slate-500 flex-wrap">
-                {formattedGoLiveDate ? (
-                  <span className="font-medium">Go-Live: {formattedGoLiveDate}</span>
-                ) : (
-                  <span>Go-Live:</span>
-                )}
+                <span className="font-medium whitespace-nowrap">Go-Live:</span>
                 <input
                   type="date"
                   value={state.config.goLiveDate}
                   onChange={(e) => setState({ ...state, config: { ...state.config, goLiveDate: e.target.value } })}
-                  className="bg-transparent border-none text-n-600 dark:text-slate-400 focus:outline-none text-xs"
+                  className="bg-n-100 dark:bg-slate-800 border border-n-300 dark:border-slate-600 rounded px-1.5 py-0.5 text-n-700 dark:text-slate-300 focus:outline-none focus:border-p-blue text-xs"
                 />
                 {daysUntilGoLive !== null && (
                   <span className={daysUntilGoLive < 30 ? 'text-danger' : daysUntilGoLive < 60 ? 'text-warning' : 'text-n-600 dark:text-slate-400'}>
@@ -244,12 +233,15 @@ export const Layout: React.FC = () => {
         <Outlet />
       </main>
 
-      <EventDrawer
-        event={editingEvent}
-        onSave={handleSaveEvent}
-        onClose={() => setEditingId(null)}
-        onDelete={handleDeleteEvent}
-      />
+      {editingEvent && (
+        <EventDrawer
+          key={editingId ?? undefined}
+          event={editingEvent}
+          onSave={handleSaveEvent}
+          onClose={() => setEditingId(null)}
+          onDelete={handleDeleteEvent}
+        />
+      )}
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
