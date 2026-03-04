@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -18,9 +18,11 @@ export const Layout: React.FC = () => {
 
   const editingEvent = editingId ? state.events.find((e) => e.id === editingId) ?? null : null;
 
-  const daysUntilCutover = state.config.cutoverDate
-    ? Math.ceil((new Date(state.config.cutoverDate + 'T00:00:00').getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : null;
+  const daysUntilCutover = useMemo(() => {
+    if (!state.config.cutoverDate) return null;
+    const now = new Date().setHours(0, 0, 0, 0);
+    return Math.ceil((new Date(state.config.cutoverDate + 'T00:00:00').getTime() - now) / (1000 * 60 * 60 * 24));
+  }, [state.config.cutoverDate]);
 
   const [editingName, setEditingName] = React.useState(false);
 

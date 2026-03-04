@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Timeline } from '../components/Timeline';
 import { ReadinessGauge } from '../components/ReadinessGauge';
@@ -16,9 +16,11 @@ function readinessBadgeStyle(pct: number): React.CSSProperties {
 export const OverviewPage: React.FC = () => {
   const { state, setState, sortedEvents, currentMetrics, setEditingId } = useApp();
 
-  const daysUntilCutover = state.config.cutoverDate
-    ? Math.ceil((new Date(state.config.cutoverDate + 'T00:00:00').getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : null;
+  const daysUntilCutover = useMemo(() => {
+    if (!state.config.cutoverDate) return null;
+    const now = new Date().setHours(0, 0, 0, 0);
+    return Math.ceil((new Date(state.config.cutoverDate + 'T00:00:00').getTime() - now) / (1000 * 60 * 60 * 24));
+  }, [state.config.cutoverDate]);
 
   const lowestScore = currentMetrics
     ? [
