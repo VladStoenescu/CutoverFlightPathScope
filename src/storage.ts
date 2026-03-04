@@ -1,28 +1,41 @@
 import type { AppState } from './models';
 
-const STORAGE_KEY = 'cutover_flightpath_state';
+const API_BASE = '/api';
 
-export function loadState(): AppState | null {
+// ─── API-backed persistence ───────────────────────────────────────────────────
+
+export async function loadStateFromAPI(): Promise<AppState | null> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as AppState;
+    const res = await fetch(`${API_BASE}/state`);
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return (await res.json()) as AppState;
   } catch {
     return null;
   }
 }
 
-export function saveState(state: AppState): void {
+export async function saveStateToAPI(state: AppState): Promise<void> {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    await fetch(`${API_BASE}/state`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state),
+    });
   } catch {
-    // storage quota exceeded etc.
+    // network unavailable – silently ignore so the UI stays functional
   }
 }
 
-export function clearState(): void {
-  localStorage.removeItem(STORAGE_KEY);
+export async function clearStateFromAPI(): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/state`, { method: 'DELETE' });
+  } catch {
+    // ignore
+  }
 }
+
+// ─── JSON file import / export (unchanged) ───────────────────────────────────
 
 export function exportJSON(state: AppState): void {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
@@ -49,3 +62,4 @@ export function importJSON(file: File): Promise<AppState> {
     reader.readAsText(file);
   });
 }
+

@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { AppState, CutoverEvent, SignoffTopic, TopicCriteria, Defect } from '../models';
 import { createEvent, computeDerivedMetrics } from '../models';
-import { loadState, saveState, clearState, exportJSON, importJSON } from '../storage';
+import { loadStateFromAPI, saveStateToAPI, clearStateFromAPI, exportJSON, importJSON } from '../storage';
 import { demoData } from '../demoData';
 
 const DEFAULT_STATE: AppState = {
@@ -30,7 +30,7 @@ interface AppContextValue {
   handleAddEvent: (type: 'DRH' | 'MDR') => void;
   handleSaveEvent: (event: CutoverEvent) => void;
   handleDeleteEvent: (id: string) => void;
-  handleReset: () => void;
+  handleReset: () => Promise<void>;
   handleLoadDemo: () => void;
   handleExport: () => void;
   handleImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -48,25 +48,36 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AppState>(() => {
-    const loaded = loadState();
-    if (!loaded) return DEFAULT_STATE;
-    // Migrate old cutoverDate -> goLiveDate without mutating
-    const rawCfg = loaded.config as AppState['config'] & { cutoverDate?: string };
-    const migratedConfig = rawCfg.cutoverDate && !rawCfg.goLiveDate
-      ? { ...rawCfg, goLiveDate: rawCfg.cutoverDate, cutoverDate: undefined }
-      : rawCfg;
-    return {
-      ...DEFAULT_STATE,
-      ...loaded,
-      config: { ...DEFAULT_STATE.config, ...migratedConfig },
-    };
-  });
+  const [state, setState] = useState<AppState>(DEFAULT_STATE);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [exportMode, setExportMode] = useState(false);
+  // Track whether the initial load from the API has completed so that the
+  // persistence effect does not fire a spurious PUT with DEFAULT_STATE.
+  const loadedRef = useRef(false);
 
+  // Load state from the Python backend on mount
   useEffect(() => {
-    saveState(state);
+    loadStateFromAPI().then((loaded) => {
+      loadedRef.current = true;
+      if (!loaded) return;
+      // Migrate old cutoverDate -> goLiveDate without mutating
+      const rawCfg = loaded.config as AppState['config'] & { cutoverDate?: string };
+      const migratedConfig = rawCfg.cutoverDate && !rawCfg.goLiveDate
+        ? { ...rawCfg, goLiveDate: rawCfg.cutoverDate, cutoverDate: undefined }
+        : rawCfg;
+      setState({
+        ...DEFAULT_STATE,
+        ...loaded,
+        config: { ...DEFAULT_STATE.config, ...migratedConfig },
+      });
+    });
+  }, []);
+
+  // Persist state to the Python backend whenever it changes (skip the initial
+  // DEFAULT_STATE render before the API load has returned).
+  useEffect(() => {
+    if (!loadedRef.current) return;
+    saveStateToAPI(state);
   }, [state]);
 
   const sortedEvents = [...state.events].sort((a, b) => a.sequenceNumber - b.sequenceNumber);
@@ -104,9 +115,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setEditingId(null);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!confirm('Reset all data? This cannot be undone.')) return;
-    clearState();
+    await clearStateFromAPI();
     setState(DEFAULT_STATE);
   };
 
