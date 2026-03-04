@@ -30,7 +30,7 @@ export const QualPanel: React.FC<Props> = ({ events }) => {
     : 0;
 
   return (
-    <div className="space-y-3">
+    <div data-export-id="qual-chart" className="space-y-3">
       <div>
         <div className="text-xs text-slate-400 mb-1">Open Defects (Expected vs Actual)</div>
         <ResponsiveContainer width="100%" height={120}>

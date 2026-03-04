@@ -38,6 +38,7 @@ export const ScopePanel: React.FC<Props> = ({ events }) => {
   ];
 
   return (
+    <div data-export-id="scope-chart">
     <ResponsiveContainer width="100%" height={180}>
       <BarChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -52,5 +53,6 @@ export const ScopePanel: React.FC<Props> = ({ events }) => {
         <Bar dataKey="Actual" fill="#10b981" radius={[3, 3, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
+    </div>
   );
 };

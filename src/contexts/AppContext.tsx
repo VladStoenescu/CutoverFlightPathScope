@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { AppState, CutoverEvent } from '../models';
+import type { AppState, CutoverEvent, SignoffTopic, TopicCriteria, Defect } from '../models';
 import { createEvent, computeDerivedMetrics } from '../models';
 import { loadState, saveState, clearState, exportJSON, importJSON } from '../storage';
 import { demoData } from '../demoData';
@@ -7,10 +7,16 @@ import { demoData } from '../demoData';
 const DEFAULT_STATE: AppState = {
   config: {
     programName: 'My Migration Program',
-    cutoverDate: '',
+    goLiveDate: '',
     readinessTarget: 100,
   },
   events: [],
+  topics: [],
+  criteria: [],
+  defects: [],
+  annotations: [],
+  role: 'working',
+  compactMode: false,
 };
 
 interface AppContextValue {
@@ -28,13 +34,37 @@ interface AppContextValue {
   handleLoadDemo: () => void;
   handleExport: () => void;
   handleImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  exportMode: boolean;
+  setExportMode: (v: boolean) => void;
+  // Topic/Criteria/Defect helpers
+  handleSaveTopic: (topic: SignoffTopic) => void;
+  handleDeleteTopic: (id: string) => void;
+  handleSaveCriteria: (criteria: TopicCriteria) => void;
+  handleDeleteCriteria: (id: string) => void;
+  handleSaveDefect: (defect: Defect) => void;
+  handleDeleteDefect: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AppState>(() => loadState() ?? DEFAULT_STATE);
+  const [state, setState] = useState<AppState>(() => {
+    const loaded = loadState();
+    if (!loaded) return DEFAULT_STATE;
+    // Migrate old cutoverDate -> goLiveDate
+    const cfg = loaded.config as AppState['config'] & { cutoverDate?: string };
+    if (cfg.cutoverDate && !cfg.goLiveDate) {
+      cfg.goLiveDate = cfg.cutoverDate;
+      delete cfg.cutoverDate;
+    }
+    return {
+      ...DEFAULT_STATE,
+      ...loaded,
+      config: { ...DEFAULT_STATE.config, ...loaded.config },
+    };
+  });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [exportMode, setExportMode] = useState(false);
 
   useEffect(() => {
     saveState(state);
@@ -44,8 +74,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const latestEvent = sortedEvents[sortedEvents.length - 1];
   const currentMetrics = latestEvent ? computeDerivedMetrics(latestEvent) : null;
 
-  // Events without a date or when no go-live window is set are assumed to be
-  // before the go-live window and therefore still remaining.
   const eventsRemaining = state.events.filter((e) => {
     if (e.completed) return false;
     const end = state.config.goLiveWindowEnd;
@@ -95,11 +123,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!file) return;
     try {
       const imported = await importJSON(file);
-      setState(imported);
+      setState({ ...DEFAULT_STATE, ...imported, config: { ...DEFAULT_STATE.config, ...imported.config } });
     } catch {
       alert('Failed to import JSON. Please check the file format.');
     }
     e.target.value = '';
+  };
+
+  const handleSaveTopic = (topic: SignoffTopic) => {
+    setState(s => {
+      const exists = s.topics.some(t => t.id === topic.id);
+      return { ...s, topics: exists ? s.topics.map(t => t.id === topic.id ? topic : t) : [...s.topics, topic] };
+    });
+  };
+  const handleDeleteTopic = (id: string) => {
+    setState(s => ({ ...s, topics: s.topics.filter(t => t.id !== id) }));
+  };
+  const handleSaveCriteria = (criteria: TopicCriteria) => {
+    setState(s => {
+      const exists = s.criteria.some(c => c.id === criteria.id);
+      return { ...s, criteria: exists ? s.criteria.map(c => c.id === criteria.id ? criteria : c) : [...s.criteria, criteria] };
+    });
+  };
+  const handleDeleteCriteria = (id: string) => {
+    setState(s => ({ ...s, criteria: s.criteria.filter(c => c.id !== id) }));
+  };
+  const handleSaveDefect = (defect: Defect) => {
+    setState(s => {
+      const exists = s.defects.some(d => d.id === defect.id);
+      return { ...s, defects: exists ? s.defects.map(d => d.id === defect.id ? defect : d) : [...s.defects, defect] };
+    });
+  };
+  const handleDeleteDefect = (id: string) => {
+    setState(s => ({ ...s, defects: s.defects.filter(d => d.id !== id) }));
   };
 
   return (
@@ -108,6 +164,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       sortedEvents, currentMetrics, eventsRemaining,
       handleAddEvent, handleSaveEvent, handleDeleteEvent,
       handleReset, handleLoadDemo, handleExport, handleImport,
+      exportMode, setExportMode,
+      handleSaveTopic, handleDeleteTopic,
+      handleSaveCriteria, handleDeleteCriteria,
+      handleSaveDefect, handleDeleteDefect,
     }}>
       {children}
     </AppContext.Provider>

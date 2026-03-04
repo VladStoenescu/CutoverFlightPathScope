@@ -33,6 +33,7 @@ export const TrajectoryChart: React.FC<Props> = ({ events, goLiveWindowStart, go
     : undefined;
 
   return (
+    <div data-export-id="trajectory-chart">
     <ResponsiveContainer width="100%" height={220}>
       <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-slate-800" />
@@ -53,5 +54,6 @@ export const TrajectoryChart: React.FC<Props> = ({ events, goLiveWindowStart, go
         <Line type="monotone" dataKey="Qualitative" stroke="#DC2626" strokeWidth={1.5} dot={{ r: 3 }} strokeDasharray="4 2" />
       </LineChart>
     </ResponsiveContainer>
+    </div>
   );
 };
