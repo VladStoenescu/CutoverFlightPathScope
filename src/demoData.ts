@@ -5,6 +5,8 @@ export const demoData: AppState = {
     programName: 'Project Phoenix Migration',
     cutoverDate: '2025-09-30',
     readinessTarget: 100,
+    goLiveWindowStart: '2025-08-01',
+    goLiveWindowEnd: '2025-09-30',
   },
   events: [
     {
@@ -39,6 +41,7 @@ export const demoData: AppState = {
         topicsSignedOffCount: 5, topicsTotalCount: 20,
       },
       notes: 'First dry run revealed several gaps in runbook steps 14-22. Teams aligned on remediation plan.',
+      completed: true,
     },
     {
       id: 'mdr-1-demo',
@@ -72,6 +75,7 @@ export const demoData: AppState = {
         topicsSignedOffCount: 10, topicsTotalCount: 20,
       },
       notes: 'Migration pipeline showed improvement but reconciliation breaks still high. Legacy ID conversion needs additional work.',
+      completed: true,
     },
     {
       id: 'drh-2-demo',
@@ -105,6 +109,7 @@ export const demoData: AppState = {
         topicsSignedOffCount: 15, topicsTotalCount: 20,
       },
       notes: 'Great improvement across all metrics. Runbook now stable. Remaining defects are P3/P4 only.',
+      completed: false,
     },
     {
       id: 'mdr-2-demo',
@@ -139,6 +144,7 @@ export const demoData: AppState = {
         topicsSignedOffCount: 19, topicsTotalCount: 20,
       },
       notes: 'Near-perfect run. One outstanding topic pending legal sign-off. System is ready for cutover pending final approval.',
+      completed: false,
     },
   ],
 };

@@ -18,10 +18,7 @@ export const ReadinessGauge: React.FC<Props> = ({ pct, size = 120, label }) => {
   return (
     <div className="flex flex-col items-center gap-1">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle
-          cx={cx} cy={cy} r={r}
-          fill="none" stroke="#1e293b" strokeWidth="10"
-        />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#E5E7EB" strokeWidth="10" className="dark:stroke-slate-700" />
         <circle
           cx={cx} cy={cy} r={r}
           fill="none" stroke={color} strokeWidth="10"
@@ -35,7 +32,7 @@ export const ReadinessGauge: React.FC<Props> = ({ pct, size = 120, label }) => {
           {pct}%
         </text>
       </svg>
-      {label && <span className="text-xs text-slate-400">{label}</span>}
+      {label && <span className="text-xs text-n-600 dark:text-slate-400">{label}</span>}
     </div>
   );
 };
