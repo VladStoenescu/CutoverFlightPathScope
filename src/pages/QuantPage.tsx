@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../contexts/AppContext';
 import { QuantPanel } from '../components/QuantPanel';
 import { computeQuantitativeReadiness, getRuntimeVariancePct } from '../models';
+import { colors, getReadinessColorToken } from '../theme';
 
 export const QuantPage: React.FC = () => {
   const { sortedEvents } = useApp();
@@ -38,7 +39,7 @@ export const QuantPage: React.FC = () => {
               {sortedEvents.map((event) => {
                 const readiness = computeQuantitativeReadiness(event.quantitative);
                 const variance = getRuntimeVariancePct(event.quantitative.runtime);
-                const varColor = Math.abs(variance) > 25 ? '#DC2626' : Math.abs(variance) > 10 ? '#F59E0B' : '#16A34A';
+                const varColor = Math.abs(variance) > 25 ? colors.danger : Math.abs(variance) > 10 ? colors.warning : colors.success;
                 const r = event.quantitative.records;
                 const refPct = r.referenceDataPlanned > 0 ? Math.round((r.referenceDataActual / r.referenceDataPlanned) * 100) : 0;
                 const statPct = r.staticDataPlanned > 0 ? Math.round((r.staticDataActual / r.staticDataPlanned) * 100) : 0;
@@ -55,7 +56,7 @@ export const QuantPage: React.FC = () => {
                     <td className="text-right py-2 px-3 text-n-900 dark:text-slate-300">{infPct}%</td>
                     <td className="text-right py-2 px-3 font-medium" style={{ color: varColor }}>{variance > 0 ? '+' : ''}{variance}%</td>
                     <td className="text-right py-2 pl-3">
-                      <span className="font-bold text-base" style={{ color: readiness >= 90 ? '#16A34A' : readiness >= 70 ? '#F59E0B' : '#DC2626' }}>
+                      <span className="font-bold text-base" style={{ color: getReadinessColorToken(readiness) }}>
                         {readiness}%
                       </span>
                     </td>

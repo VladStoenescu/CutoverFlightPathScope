@@ -24,9 +24,13 @@ export const TrajectoryChart: React.FC<Props> = ({ events, goLiveWindowStart, go
     };
   });
 
-  // Find data keys matching the go-live window dates
-  const startName = goLiveWindowStart ? events.find(e => e.date >= goLiveWindowStart!)?.name : undefined;
-  const endName = goLiveWindowEnd ? events.slice().reverse().find(e => e.date <= goLiveWindowEnd!)?.name : undefined;
+  // Find data keys matching the go-live window dates using proper Date comparison
+  const startName = goLiveWindowStart
+    ? events.find(e => e.date && new Date(e.date + 'T00:00:00') >= new Date(goLiveWindowStart! + 'T00:00:00'))?.name
+    : undefined;
+  const endName = goLiveWindowEnd
+    ? events.slice().reverse().find(e => e.date && new Date(e.date + 'T00:00:00') <= new Date(goLiveWindowEnd! + 'T00:00:00'))?.name
+    : undefined;
 
   return (
     <ResponsiveContainer width="100%" height={220}>

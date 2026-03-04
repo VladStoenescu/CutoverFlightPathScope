@@ -6,6 +6,12 @@ import { TrajectoryChart } from '../components/TrajectoryChart';
 import { ScopePanel } from '../components/ScopePanel';
 import { QuantPanel } from '../components/QuantPanel';
 import { QualPanel } from '../components/QualPanel';
+import { getReadinessColorToken } from '../theme';
+
+function readinessBadgeStyle(pct: number): React.CSSProperties {
+  const color = getReadinessColorToken(pct);
+  return { background: color + '22', color };
+}
 
 export const OverviewPage: React.FC = () => {
   const { state, setState, sortedEvents, currentMetrics, setEditingId } = useApp();
@@ -125,10 +131,7 @@ export const OverviewPage: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold text-n-900 dark:text-slate-300">A · Scope Coverage</div>
               {currentMetrics && (
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{
-                  background: currentMetrics.scopeReadinessPct >= 90 ? '#16A34A22' : currentMetrics.scopeReadinessPct >= 70 ? '#F59E0B22' : '#DC262622',
-                  color: currentMetrics.scopeReadinessPct >= 90 ? '#16A34A' : currentMetrics.scopeReadinessPct >= 70 ? '#F59E0B' : '#DC2626',
-                }}>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={readinessBadgeStyle(currentMetrics.scopeReadinessPct)}>
                   {currentMetrics.scopeReadinessPct}% readiness
                 </span>
               )}
@@ -140,10 +143,7 @@ export const OverviewPage: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold text-n-900 dark:text-slate-300">B · Quantitative</div>
               {currentMetrics && (
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{
-                  background: currentMetrics.quantitativeReadinessPct >= 90 ? '#16A34A22' : currentMetrics.quantitativeReadinessPct >= 70 ? '#F59E0B22' : '#DC262622',
-                  color: currentMetrics.quantitativeReadinessPct >= 90 ? '#16A34A' : currentMetrics.quantitativeReadinessPct >= 70 ? '#F59E0B' : '#DC2626',
-                }}>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={readinessBadgeStyle(currentMetrics.quantitativeReadinessPct)}>
                   {currentMetrics.quantitativeReadinessPct}% readiness
                 </span>
               )}
@@ -155,10 +155,7 @@ export const OverviewPage: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold text-n-900 dark:text-slate-300">C · Qualitative</div>
               {currentMetrics && (
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{
-                  background: currentMetrics.qualitativeReadinessPct >= 90 ? '#16A34A22' : currentMetrics.qualitativeReadinessPct >= 70 ? '#F59E0B22' : '#DC262622',
-                  color: currentMetrics.qualitativeReadinessPct >= 90 ? '#16A34A' : currentMetrics.qualitativeReadinessPct >= 70 ? '#F59E0B' : '#DC2626',
-                }}>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={readinessBadgeStyle(currentMetrics.qualitativeReadinessPct)}>
                   {currentMetrics.qualitativeReadinessPct}% readiness
                 </span>
               )}

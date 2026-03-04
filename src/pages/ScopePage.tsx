@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../contexts/AppContext';
 import { ScopePanel } from '../components/ScopePanel';
 import { computeScopeReadiness } from '../models';
+import { colors, getReadinessColorToken } from '../theme';
 
 export const ScopePage: React.FC = () => {
   const { sortedEvents } = useApp();
@@ -45,35 +46,35 @@ export const ScopePage: React.FC = () => {
                     <td className="text-right py-2 px-3 text-n-900 dark:text-slate-300">
                       <span className="text-n-600 dark:text-slate-500">{event.scope.runbookScopePctPlanned}%</span>
                       {' → '}
-                      <span style={{ color: event.scope.runbookScopePctActual >= event.scope.runbookScopePctPlanned ? '#16A34A' : '#DC2626' }}>
+                      <span style={{ color: event.scope.runbookScopePctActual >= event.scope.runbookScopePctPlanned ? colors.success : colors.danger }}>
                         {event.scope.runbookScopePctActual}%
                       </span>
                     </td>
                     <td className="text-right py-2 px-3 text-n-900 dark:text-slate-300">
                       <span className="text-n-600 dark:text-slate-500">{event.scope.migrationScopePctPlanned}%</span>
                       {' → '}
-                      <span style={{ color: event.scope.migrationScopePctActual >= event.scope.migrationScopePctPlanned ? '#16A34A' : '#DC2626' }}>
+                      <span style={{ color: event.scope.migrationScopePctActual >= event.scope.migrationScopePctPlanned ? colors.success : colors.danger }}>
                         {event.scope.migrationScopePctActual}%
                       </span>
                     </td>
                     <td className="text-right py-2 px-3 text-n-900 dark:text-slate-300">
                       <span className="text-n-600 dark:text-slate-500">{event.scope.applicationsScopePctPlanned}%</span>
                       {' → '}
-                      <span style={{ color: event.scope.applicationsScopePctActual >= event.scope.applicationsScopePctPlanned ? '#16A34A' : '#DC2626' }}>
+                      <span style={{ color: event.scope.applicationsScopePctActual >= event.scope.applicationsScopePctPlanned ? colors.success : colors.danger }}>
                         {event.scope.applicationsScopePctActual}%
                       </span>
                     </td>
                     <td className="text-right py-2 px-3 text-n-900 dark:text-slate-300">
                       <span className="text-n-600 dark:text-slate-500">{event.scope.legacyIdConversionScopePctPlanned}%</span>
                       {' → '}
-                      <span style={{ color: event.scope.legacyIdConversionScopePctActual >= event.scope.legacyIdConversionScopePctPlanned ? '#16A34A' : '#DC2626' }}>
+                      <span style={{ color: event.scope.legacyIdConversionScopePctActual >= event.scope.legacyIdConversionScopePctPlanned ? colors.success : colors.danger }}>
                         {event.scope.legacyIdConversionScopePctActual}%
                       </span>
                     </td>
                     <td className="text-right py-2 pl-3">
                       <span
                         className="font-bold text-base"
-                        style={{ color: readiness >= 90 ? '#16A34A' : readiness >= 70 ? '#F59E0B' : '#DC2626' }}
+                        style={{ color: getReadinessColorToken(readiness) }}
                       >
                         {readiness}%
                       </span>

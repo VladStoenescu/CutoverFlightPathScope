@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../contexts/AppContext';
 import { QualPanel } from '../components/QualPanel';
 import { computeQualitativeReadiness } from '../models';
+import { colors, getReadinessColorToken } from '../theme';
 
 export const QualPage: React.FC = () => {
   const { sortedEvents } = useApp();
@@ -37,8 +38,8 @@ export const QualPage: React.FC = () => {
                 const readiness = computeQualitativeReadiness(event.qualitative);
                 const q = event.qualitative;
                 const signOffPct = q.topicsTotalCount > 0 ? Math.round((q.topicsSignedOffCount / q.topicsTotalCount) * 100) : 0;
-                const defectColor = q.actualOpenDefects <= q.expectedOpenDefects ? '#16A34A' : '#DC2626';
-                const breakColor = q.actualReconciliationBreaks <= q.expectedReconciliationBreaks ? '#16A34A' : '#DC2626';
+                const defectColor = q.actualOpenDefects <= q.expectedOpenDefects ? colors.success : colors.danger;
+                const breakColor = q.actualReconciliationBreaks <= q.expectedReconciliationBreaks ? colors.success : colors.danger;
                 return (
                   <tr key={event.id} className="border-b border-n-200/50 dark:border-slate-800 hover:bg-n-50 dark:hover:bg-slate-800/30">
                     <td className="py-2 pr-4">
@@ -58,7 +59,7 @@ export const QualPage: React.FC = () => {
                       {q.topicsSignedOffCount}/{q.topicsTotalCount} ({signOffPct}%)
                     </td>
                     <td className="text-right py-2 pl-3">
-                      <span className="font-bold text-base" style={{ color: readiness >= 90 ? '#16A34A' : readiness >= 70 ? '#F59E0B' : '#DC2626' }}>
+                      <span className="font-bold text-base" style={{ color: getReadinessColorToken(readiness) }}>
                         {readiness}%
                       </span>
                     </td>

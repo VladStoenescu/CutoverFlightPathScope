@@ -44,7 +44,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const latestEvent = sortedEvents[sortedEvents.length - 1];
   const currentMetrics = latestEvent ? computeDerivedMetrics(latestEvent) : null;
 
-  // Events remaining = events with date before goLiveWindowEnd AND not completed
+  // Events without a date or when no go-live window is set are assumed to be
+  // before the go-live window and therefore still remaining.
   const eventsRemaining = state.events.filter((e) => {
     if (e.completed) return false;
     const end = state.config.goLiveWindowEnd;
