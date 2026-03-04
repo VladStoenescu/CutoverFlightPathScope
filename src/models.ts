@@ -3,7 +3,7 @@
 export interface ProgramConfig {
   programName: string;
   cutoverDate: string; // ISO date string
-  readinessTarget: 100;
+  readinessTarget: number;
 }
 
 export interface EventScope {
