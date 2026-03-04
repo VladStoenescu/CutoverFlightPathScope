@@ -17,7 +17,7 @@ const SEV_COLORS: Record<number, string> = {
 };
 
 function newId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  return crypto.randomUUID();
 }
 
 export const SignoffTopics: React.FC = () => {

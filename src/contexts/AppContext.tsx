@@ -51,16 +51,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [state, setState] = useState<AppState>(() => {
     const loaded = loadState();
     if (!loaded) return DEFAULT_STATE;
-    // Migrate old cutoverDate -> goLiveDate
-    const cfg = loaded.config as AppState['config'] & { cutoverDate?: string };
-    if (cfg.cutoverDate && !cfg.goLiveDate) {
-      cfg.goLiveDate = cfg.cutoverDate;
-      delete cfg.cutoverDate;
-    }
+    // Migrate old cutoverDate -> goLiveDate without mutating
+    const rawCfg = loaded.config as AppState['config'] & { cutoverDate?: string };
+    const migratedConfig = rawCfg.cutoverDate && !rawCfg.goLiveDate
+      ? { ...rawCfg, goLiveDate: rawCfg.cutoverDate, cutoverDate: undefined }
+      : rawCfg;
     return {
       ...DEFAULT_STATE,
       ...loaded,
-      config: { ...DEFAULT_STATE.config, ...loaded.config },
+      config: { ...DEFAULT_STATE.config, ...migratedConfig },
     };
   });
   const [editingId, setEditingId] = useState<string | null>(null);

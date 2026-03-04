@@ -76,12 +76,7 @@ export const InsightsPage: React.FC = () => {
     { key: 'Legacy ID', planned: (e: typeof sortedEvents[0]) => e.scope.legacyIdConversionScopePctPlanned, actual: (e: typeof sortedEvents[0]) => e.scope.legacyIdConversionScopePctActual },
     {
       key: 'Records %',
-      planned: (e: typeof sortedEvents[0]) => {
-        const r = e.quantitative.records;
-        const total = r.referenceDataPlanned + r.staticDataPlanned + r.transactionPositionPlanned + r.inflightDataPlanned;
-        const act = r.referenceDataActual + r.staticDataActual + r.transactionPositionActual + r.inflightDataActual;
-        return total > 0 ? Math.round((act / total) * 100) : 0;
-      },
+      planned: () => 100, // target is 100% migration
       actual: (e: typeof sortedEvents[0]) => {
         const r = e.quantitative.records;
         const total = r.referenceDataPlanned + r.staticDataPlanned + r.transactionPositionPlanned + r.inflightDataPlanned;

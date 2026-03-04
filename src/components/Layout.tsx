@@ -38,7 +38,7 @@ export const Layout: React.FC = () => {
     if (!goLiveWindowStart || !goLiveWindowEnd) return null;
     const fmt = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
     return `${fmt(goLiveWindowStart)} – ${fmt(goLiveWindowEnd)}`;
-  }, [state.config.goLiveWindowStart, state.config.goLiveWindowEnd]);
+  }, [state.config.goLiveWindowStart, state.config.goLiveWindowEnd]); // specific deps are correct
 
   const [editingName, setEditingName] = useState(false);
 
