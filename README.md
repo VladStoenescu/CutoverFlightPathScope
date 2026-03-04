@@ -4,19 +4,41 @@ A single-page executive dashboard that tells a timeline story of readiness reach
 
 ## Tech Stack
 
-- React + TypeScript (Vite)
-- Tailwind CSS for styling
-- Recharts for charts
-- localStorage for persistence
+- **Frontend**: React + TypeScript (Vite), Tailwind CSS, Recharts
+- **Backend**: Python + FastAPI with SQLite for persistent data storage
 
-## Install & Run
+## Quick Start
+
+### 1 · Start the Python backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+```
+
+The API server listens on **http://127.0.0.1:8000**.
+
+### 2 · Start the React frontend
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open http://localhost:5173 in your browser.
+Open **http://localhost:5173** in your browser.  
+Vite proxies every `/api/*` request to the Python backend automatically.
+
+## Backend API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/state` | Retrieve the stored application state (404 if none) |
+| `PUT` | `/api/state` | Save / overwrite the application state (body: AppState JSON) |
+| `DELETE` | `/api/state` | Clear the stored state |
+| `GET` | `/api/health` | Liveness check |
+
+State is stored as a single JSON document in `backend/data.db` (SQLite).
 
 ## Build for Production
 
@@ -59,14 +81,18 @@ Overall readiness is a weighted combination of three dimensions:
 
 ## Data Persistence
 
-All data is automatically saved to `localStorage` on every change and restored on page reload.
+All data is automatically saved to the Python backend (SQLite) on every change and restored on page reload.
 
 ## Project Structure
 
 ```
+backend/
+  main.py            # FastAPI app with /api/state endpoints
+  requirements.txt   # Python dependencies (fastapi, uvicorn)
+  data.db            # SQLite database (git-ignored, auto-created)
 src/
   models.ts          # TypeScript interfaces + derived metric functions
-  storage.ts         # localStorage persistence + JSON import/export
+  storage.ts         # API-backed persistence + JSON import/export
   demoData.ts        # Sample/demo data
   App.tsx            # Main 1-page application
   components/
@@ -90,7 +116,7 @@ The **Sign-off** page (`/signoff`) provides a structured approach to tracking re
 - **Sign-off gate**: The "Sign Off" button is disabled if any criteria are `fail` or if an open Sev-1 defect is linked. A "Risk Accepted" checkbox overrides the gate.
 - The existing `qualitative.topicsSignedOffCount` manual field is **additive** — the new topic system does not replace it.
 
-All topic/criteria/defect data is stored in `AppState` and persisted to `localStorage`.
+All topic/criteria/defect data is stored in `AppState` and persisted to the Python backend.
 
 ## PPTX Chart Export
 
@@ -114,7 +140,7 @@ The header includes a **👔 Exec / 🔧 Working** toggle:
 - **Executive mode**: The `+ DRH` and `+ MDR` event-add buttons are hidden. Suitable for read-only executive reviews.
 - **Working mode** (default): Full edit controls are visible.
 
-The role is stored in `AppState.role` and persisted to `localStorage`.
+The role is stored in `AppState.role` and persisted to the Python backend.
 
 ## Command Palette (Ctrl+K)
 
@@ -129,4 +155,4 @@ Use arrow keys to navigate, Enter to execute, Esc to close.
 
 ## Compact Mode
 
-Click the **🗜️** button in the header to reduce padding and make the layout more dense. State is persisted to `localStorage`.
+Click the **🗜️** button in the header to reduce padding and make the layout more dense. State is persisted to the Python backend.
