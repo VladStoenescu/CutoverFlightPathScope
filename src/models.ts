@@ -4,6 +4,8 @@ export interface ProgramConfig {
   programName: string;
   cutoverDate: string; // ISO date string
   readinessTarget: number;
+  goLiveWindowStart?: string;
+  goLiveWindowEnd?: string;
 }
 
 export interface EventScope {
@@ -58,6 +60,7 @@ export interface CutoverEvent {
   quantitative: EventQuantitative;
   qualitative: EventQualitative;
   notes: string;
+  completed?: boolean;
 }
 
 export interface AppState {
